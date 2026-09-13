@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Zawia Cafe POS — Login</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; }
+
+    .login-card {
+      width: 320px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 28px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-icon  { font-size: 44px; display: block; margin-bottom: 6px; }
+    .logo-name  { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: .5px; }
+    .logo-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .pin-dots { display: flex; gap: 14px; justify-content: center; margin: 0 0 6px; }
+    .pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border); transition: background .15s;
+    }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+
+    .error-msg {
+      color: var(--danger); font-size: 12px; min-height: 18px;
+      text-align: center; margin-bottom: 10px;
+    }
+
+    .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pin-key {
+      padding: 16px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text-primary);
+      font-size: 20px; font-weight: 600; cursor: pointer; text-align: center;
+      transition: background .12s;
+    }
+    .pin-key:hover  { background: var(--bg-input); }
+    .pin-key:active { transform: scale(.93); }
+    .pin-key.del    { font-size: 15px; color: var(--text-muted); }
+    .pin-key.zero   { grid-column: 2; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">
+      <span class="logo-icon">☕</span>
+      <div class="logo-name">Zawia Cafe</div>
+      <div class="logo-sub">Point of Sale</div>
+    </div>
+
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div id="error-msg" class="error-msg"></div>
+
+    <div class="pin-pad" id="pin-pad">
+      <button class="pin-key" data-key="1">1</button>
+      <button class="pin-key" data-key="2">2</button>
+      <button class="pin-key" data-key="3">3</button>
+      <button class="pin-key" data-key="4">4</button>
+      <button class="pin-key" data-key="5">5</button>
+      <button class="pin-key" data-key="6">6</button>
+      <button class="pin-key" data-key="7">7</button>
+      <button class="pin-key" data-key="8">8</button>
+      <button class="pin-key" data-key="9">9</button>
+      <button class="pin-key del" data-key="del">⌫</button>
+      <button class="pin-key zero" data-key="0">0</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

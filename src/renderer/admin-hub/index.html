@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; flex-direction: column; }
+    .hub-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 720px;
+      width: 100%;
+    }
+    .hub-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      text-align: center;
+    }
+    .hub-card:hover { border-color: var(--accent); background: var(--bg-card); }
+    .hub-card:active { transform: scale(.97); }
+    .hub-card-icon  { font-size: 36px; }
+    .hub-card-label { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .hub-card-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" id="btn-back">← Tables</button>
+    <span class="topbar-title">Admin Panel</span>
+  </div>
+
+  <div class="hub-body">
+    <div class="hub-grid">
+      <div class="hub-card" data-nav="menu-admin">
+        <div class="hub-card-icon">📋</div>
+        <div class="hub-card-label">Menu</div>
+        <div class="hub-card-desc">Manage categories and items</div>
+      </div>
+      <div class="hub-card" data-nav="tables-admin">
+        <div class="hub-card-icon">🪑</div>
+        <div class="hub-card-label">Tables</div>
+        <div class="hub-card-desc">Add, rename, or remove tables</div>
+      </div>
+      <div class="hub-card" data-nav="stock">
+        <div class="hub-card-icon">📦</div>
+        <div class="hub-card-label">Stock</div>
+        <div class="hub-card-desc">Log purchases, track costs</div>
+      </div>
+      <div class="hub-card" data-nav="profit">
+        <div class="hub-card-icon">📊</div>
+        <div class="hub-card-label">Profit</div>
+        <div class="hub-card-desc">Revenue, COGS, daily totals</div>
+      </div>
+      <div class="hub-card" data-nav="personal-log">
+        <div class="hub-card-icon">👤</div>
+        <div class="hub-card-label">Personal Log</div>
+        <div class="hub-card-desc">Admin personal-use tracking</div>
+      </div>
+      <div class="hub-card" data-nav="settings">
+        <div class="hub-card-icon">⚙️</div>
+        <div class="hub-card-label">Settings</div>
+        <div class="hub-card-desc">Exchange rate, passwords</div>
+      </div>
+      <div class="hub-card" id="backup-card">
+        <div class="hub-card-icon">💾</div>
+        <div class="hub-card-label">Backup Now</div>
+        <div class="hub-card-desc">Copy database to backups folder</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="admin-hub.js"></script>
+</body>
+</html>

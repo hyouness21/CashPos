@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Zawia Cafe POS — Tables</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; flex-direction: column; overflow: hidden; }
+
+    .tables-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      gap: 24px;
+    }
+
+    .tables-heading {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .table-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, transform .1s;
+      text-align: center;
+      position: relative;
+    }
+    .table-card:hover { background: var(--bg-card); border-color: var(--accent); }
+    .table-card:active { transform: scale(.96); }
+
+    .table-card.occupied {
+      border-color: var(--warning);
+      background: rgba(255, 214, 10, 0.06);
+    }
+    .table-card.occupied:hover { border-color: var(--accent); }
+
+    .table-icon { font-size: 38px; line-height: 1; }
+    .table-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+
+    .table-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .status-free     { background: rgba(48, 209, 88, .15);  color: var(--success); }
+    .status-occupied { background: rgba(255, 214, 10, .15); color: var(--warning); }
+
+    /* Admin PIN modal (same as cashier) */
+    .pin-dots { display: flex; gap: 12px; justify-content: center; margin: 16px 0; }
+    .pin-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: background .15s;
+    }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+    .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pin-key {
+      padding: 14px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text-primary);
+      font-size: 18px; font-weight: 600; cursor: pointer; text-align: center;
+      transition: background .12s;
+    }
+    .pin-key:hover { background: var(--bg-input); }
+    .pin-key.del { font-size: 14px; color: var(--text-muted); }
+    .pin-key.zero { grid-column: 2; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="topbar-title">☕ Zawia Cafe POS</span>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary btn-sm" id="btn-admin">Admin ▾</button>
+    </div>
+  </div>
+
+  <div class="tables-body">
+    <div class="tables-heading">Select a table to open its order</div>
+    <div class="tables-grid" id="tables-grid">
+      <div class="empty-state"><div class="empty-state-icon">🪑</div><div>No tables yet</div></div>
+    </div>
+  </div>
+
+  <!-- Admin PIN modal -->
+  <div class="modal-overlay hidden" id="admin-pin-modal">
+    <div class="modal-box">
+      <div class="modal-title">Admin Access</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Enter admin PIN to continue</div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div id="pin-error" style="color:var(--danger);font-size:12px;text-align:center;min-height:16px;margin-bottom:8px"></div>
+      <div class="pin-pad" id="pin-pad">
+        <button class="pin-key" data-key="1">1</button>
+        <button class="pin-key" data-key="2">2</button>
+        <button class="pin-key" data-key="3">3</button>
+        <button class="pin-key" data-key="4">4</button>
+        <button class="pin-key" data-key="5">5</button>
+        <button class="pin-key" data-key="6">6</button>
+        <button class="pin-key" data-key="7">7</button>
+        <button class="pin-key" data-key="8">8</button>
+        <button class="pin-key" data-key="9">9</button>
+        <button class="pin-key del" data-key="del">⌫</button>
+        <button class="pin-key zero" data-key="0">0</button>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-ghost btn-full" id="pin-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="tables.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Personal Log</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; flex-direction: column; overflow: hidden; }
+    .body { display: flex; flex: 1; overflow: hidden; }
+
+    .add-panel {
+      width: 300px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 20px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .add-panel h2 { font-size: 15px; font-weight: 700; }
+
+    .log-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .log-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .log-header h2 { font-size: 14px; font-weight: 700; flex: 1; }
+
+    .admin-tabs { display: flex; gap: 6px; }
+    .admin-tab {
+      padding: 6px 14px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-secondary);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .admin-tab.active { background: var(--accent); color: #1a1200; border-color: var(--accent); font-weight: 700; }
+
+    .period-btn {
+      padding: 5px 12px; border: none; background: var(--bg-card);
+      color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .period-btn.active { background: var(--accent); color: #1a1200; }
+
+    .daily-summary {
+      display: flex; gap: 12px; padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .daily-card {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 10px 14px; flex: 1;
+    }
+    .daily-card-name  { font-size: 12px; color: var(--text-muted); }
+    .daily-card-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+
+    .log-table-wrap { flex: 1; overflow-y: auto; padding: 12px 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 10px; font-size: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    td { padding: 10px 10px; font-size: 13px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-card); }
+
+    tr.row-unpaid td { background: rgba(157,111,0,.06); }
+    tr.row-unpaid td:first-child { border-left: 3px solid var(--warning); padding-left: 7px; }
+    tr.row-unpaid:hover td { background: rgba(157,111,0,.12); }
+
+    .unpaid-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 700; color: var(--warning);
+      background: rgba(157,111,0,.12); border: 1px solid rgba(157,111,0,.3);
+      border-radius: 100px; padding: 2px 8px; margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" id="btn-back">← Admin</button>
+    <span class="topbar-title">Personal Use Log</span>
+    <div class="topbar-actions">
+      <span style="font-size:12px;color:var(--text-muted)">Not deducted from profit</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Add entry -->
+    <div class="add-panel scroll">
+      <h2>Log Personal Use</h2>
+      <div class="field">
+        <label>Admin</label>
+        <select class="select" id="admin-select">
+          <option value="admin1">Admin 1</option>
+          <option value="admin2">Admin 2</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Item</label>
+        <select class="select" id="item-select"><option value="">Select item…</option></select>
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <input type="number" class="input" id="qty-input" placeholder="1" min="1" step="1" value="1">
+      </div>
+      <div class="field">
+        <label>Personal Price (USD) <small style="color:var(--text-muted)">(auto-filled)</small></label>
+        <input type="number" class="input" id="price-input" placeholder="0.00" min="0" step="0.25">
+      </div>
+      <div id="line-total" style="font-size:13px;color:var(--text-muted)"></div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" class="input" id="notes-input" placeholder="">
+      </div>
+      <button class="btn btn-primary" id="btn-log">Log Entry</button>
+    </div>
+
+    <!-- Log view -->
+    <div class="log-panel">
+      <div class="log-header">
+        <h2>Log</h2>
+        <div class="admin-tabs" id="admin-tabs">
+          <button class="admin-tab active" data-admin="all">All</button>
+          <button class="admin-tab" data-admin="admin1" id="tab-admin1">Admin 1</button>
+          <button class="admin-tab" data-admin="admin2" id="tab-admin2">Admin 2</button>
+        </div>
+        <div style="display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+          <button class="period-btn active" data-period="day">Day</button>
+          <button class="period-btn" data-period="month">Month</button>
+          <button class="period-btn" data-period="all">All</button>
+        </div>
+        <input type="date"  class="input" id="date-filter"  style="width:140px">
+        <input type="month" class="input" id="month-filter" style="width:140px;display:none">
+        <button class="btn btn-secondary btn-sm" id="btn-filter">Filter</button>
+      </div>
+
+      <div class="daily-summary" id="daily-summary"></div>
+
+      <div class="log-table-wrap scroll">
+        <table>
+          <thead><tr><th>Time</th><th>Admin</th><th>Item</th><th>Qty</th><th>Personal Price</th><th>Total</th><th>Notes</th><th>Status</th></tr></thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="personal-log.js"></script>
+</body>
+</html>

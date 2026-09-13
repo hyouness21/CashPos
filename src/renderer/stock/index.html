@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Stock Management</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; flex-direction: column; overflow: hidden; }
+    .body { display: flex; flex: 1; overflow: hidden; gap: 0; }
+
+    .add-panel {
+      width: 320px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .add-panel h2 { font-size: 15px; font-weight: 700; }
+
+    .history-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .history-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .history-header h2 { font-size: 14px; font-weight: 700; flex: 1; }
+
+    .history-wrap { flex: 1; overflow-y: auto; padding: 12px 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 10px; font-size: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    td { padding: 10px 10px; font-size: 13px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-card); }
+
+    .cost-highlight { color: var(--accent); font-weight: 700; }
+
+    .cost-cur {
+      padding: 3px 10px; border: none; background: var(--bg-card);
+      color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .cost-cur.active { background: var(--accent); color: #1a1200; }
+
+    .tab-row { display: flex; gap: 4px; flex: 1; }
+    .stab {
+      padding: 6px 14px; border: none; background: transparent;
+      color: var(--text-muted); font-size: 13px; font-weight: 600;
+      cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s;
+    }
+    .stab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .stab:hover:not(.active) { color: var(--text-primary); }
+
+    .stock-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+    }
+    .stock-ok  { background: rgba(30,126,52,.12); color: var(--success); }
+    .stock-low { background: rgba(157,111,0,.12); color: var(--warning); }
+    .stock-out { background: rgba(192,57,43,.12); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" id="btn-back">← Admin</button>
+    <span class="topbar-title">Stock Purchases</span>
+  </div>
+
+  <div class="body">
+    <!-- Add purchase form -->
+    <div class="add-panel scroll">
+      <h2>Log Purchase</h2>
+      <div class="field">
+        <label>Item</label>
+        <select class="select" id="item-select">
+          <option value="">Select item…</option>
+        </select>
+        <div id="on-hand-badge" style="display:none;font-size:12px;margin-top:4px"></div>
+      </div>
+      <div class="field">
+        <label>Quantity Bought</label>
+        <input type="number" class="input" id="qty-input" placeholder="e.g. 24" min="1" step="1">
+      </div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label style="margin:0" id="cost-label">Total Cost Paid (USD)</label>
+          <div style="display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+            <button type="button" class="cost-cur active" id="cost-cur-usd">$ USD</button>
+            <button type="button" class="cost-cur" id="cost-cur-lbp">LL LBP</button>
+          </div>
+        </div>
+        <input type="number" class="input" id="cost-input" placeholder="e.g. 12.00" min="0" step="0.01">
+      </div>
+      <div id="cost-preview" style="background:var(--bg-card);border-radius:var(--radius-sm);padding:10px;font-size:13px;color:var(--text-secondary);display:none">
+        Cost per unit: <strong id="cpu-preview" class="cost-highlight"></strong>
+        <span id="cpu-preview-lbp" style="color:var(--text-muted);margin-left:6px"></span>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" class="input" id="notes-input" placeholder="e.g. Supermarket run">
+      </div>
+      <button class="btn btn-primary" id="btn-log">Log Purchase</button>
+    </div>
+
+    <!-- History + Levels -->
+    <div class="history-panel">
+      <div class="history-header">
+        <div class="tab-row" id="stock-tabs">
+          <button class="stab active" data-tab="purchases">Purchase History</button>
+          <button class="stab" data-tab="levels">Current Stock</button>
+        </div>
+        <select class="select" id="filter-item" style="width:180px">
+          <option value="">All items</option>
+        </select>
+      </div>
+
+      <div class="history-wrap scroll" id="pane-purchases">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Item</th><th>Qty In</th><th>Total Cost</th><th>Cost/Unit</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="history-wrap scroll" id="pane-levels" style="display:none">
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Category</th><th>On Hand</th><th>Status</th></tr>
+          </thead>
+          <tbody id="levels-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="stock.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Profit Dashboard</title>
+  <link rel="stylesheet" href="../shared/global.css">
+  <style>
+    body { display: flex; flex-direction: column; overflow: hidden; }
+    .body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Summary cards */
+    .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .stat-card-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card-value { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--text-primary); }
+    .stat-card-value.positive { color: var(--success); }
+    .stat-card-value.accent { color: var(--accent); }
+
+    /* Tab bar */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .tab-btn {
+      padding: 8px 16px;
+      border: none; background: transparent;
+      color: var(--text-muted); font-size: 14px; font-weight: 600;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+    /* Date filters */
+    .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .filters label { font-size: 13px; color: var(--text-secondary); }
+    .filters input { padding: 7px 10px; width: 140px; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-card); }
+    .bar-cell { display: flex; align-items: center; gap: 8px; }
+    .profit-bar { height: 6px; background: var(--success); border-radius: 3px; min-width: 4px; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 14px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" id="btn-back">← Admin</button>
+    <span class="topbar-title">Profit Dashboard</span>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary btn-sm" id="btn-refresh">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="body scroll">
+    <!-- All-time summary -->
+    <div class="summary-cards" id="summary-cards">
+      <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-value accent" id="stat-revenue">—</div></div>
+      <div class="stat-card"><div class="stat-card-label">Stock Spend</div><div class="stat-card-value" id="stat-stock">—</div></div>
+      <div class="stat-card"><div class="stat-card-label">Net Profit (Rev − Stock)</div><div class="stat-card-value positive" id="stat-profit">—</div></div>
+      <div class="stat-card"><div class="stat-card-label">Total Orders</div><div class="stat-card-value" id="stat-orders">—</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="items">By Item</button>
+      <button class="tab-btn" data-tab="daily">Daily</button>
+      <button class="tab-btn" data-tab="monthly">Monthly</button>
+    </div>
+
+    <!-- By Item -->
+    <div class="tab-content active" id="tab-items">
+      <div class="filters">
+        <label>From <input type="date" class="input" id="item-from"></label>
+        <label>To <input type="date" class="input" id="item-to"></label>
+        <button class="btn btn-secondary btn-sm" id="btn-item-filter">Apply</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Qty Sold</th><th>Revenue</th><th>COGS</th><th>Profit</th><th>Margin</th><th></th></tr></thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Daily -->
+    <div class="tab-content" id="tab-daily">
+      <div class="filters">
+        <label>From <input type="date" class="input" id="daily-from"></label>
+        <label>To <input type="date" class="input" id="daily-to"></label>
+        <button class="btn btn-secondary btn-sm" id="btn-daily-filter">Apply</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Revenue</th><th>Stock Spend</th><th>Profit</th></tr></thead>
+          <tbody id="daily-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Monthly -->
+    <div class="tab-content" id="tab-monthly">
+      <div class="filters">
+        <label>Year <input type="number" class="input" id="monthly-year" style="width:100px" min="2020"></label>
+        <button class="btn btn-secondary btn-sm" id="btn-monthly-filter">Apply</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Revenue</th><th>Stock Spend</th><th>Profit</th></tr></thead>
+          <tbody id="monthly-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="../shared/toast.js"></script>
+  <script src="profit.js"></script>
+</body>
+</html>
