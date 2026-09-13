@@ -1,10 +1,26 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 const { initDatabase } = require('./db/index');
 const { registerAllIpc } = require('./ipc/index');
 const backup = require('./backup');
+
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = false;
+
+autoUpdater.on('update-downloaded', () => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Ready',
+    message: 'A new version has been downloaded. The app will restart to apply the update.',
+    buttons: ['Restart Now'],
+    defaultId: 0,
+  }).then(() => {
+    autoUpdater.quitAndInstall();
+  });
+});
 
 let mainWindow;
 
@@ -119,6 +135,7 @@ app.whenReady().then(() => {
 
   createWindow();
   backup.startPeriodicBackup();
+  if (app.isPackaged) autoUpdater.checkForUpdatesAndNotify();
 
   app.on('before-quit', () => {
     try { backup.runBackup(); } catch (_) {}
